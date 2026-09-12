@@ -1,0 +1,14 @@
+# env files (secrets — never commit)
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# virtual environment (uv also drops its own .gitignore inside here)
+.venv/
