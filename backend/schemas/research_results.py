@@ -4,7 +4,7 @@ from datetime import datetime
 from schemas.search_results import SearchResult
 from schemas.rss_results import RSSResult
 
-class ResearchStep(BaseModel):
+class ResearchSteps(BaseModel):
     article: RSSResult
     searches: list[str] = []
     sources: list[SearchResult] = []

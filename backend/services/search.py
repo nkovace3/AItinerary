@@ -1,13 +1,14 @@
-import os
+from functools import lru_cache
+from config import get_settings
 from tavily import TavilyClient
 from schemas.search_results import SearchResult
 
-client = TavilyClient(
-    api_key=os.environ.get("TAVILY_API_KEY")
-)
+@lru_cache
+def get_client() -> TavilyClient:
+    return TavilyClient(api_key = get_settings().tavily_api_key)
 
 async def search_web(query: str) -> list[SearchResult]:
-    response = client.search(
+    response = get_client().search(
         query=query,
         topic = 'news',
         time_range = 'week',

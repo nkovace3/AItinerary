@@ -6,8 +6,10 @@ dependencies = [
     "beautifulsoup4>=4.15.0",
     "fastapi[standard]>=0.141.1",
     "feedparser>=6.0.14",
+    "google-genai>=2.23.0",
     "pydantic>=2.13.5",
     "python-dateutil>=2.9.0.post0",
+    "python-dotenv>=1.2.3",
     "requests>=2.34.2",
     "tavily-python>=0.8.1",
 ]

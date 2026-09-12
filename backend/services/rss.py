@@ -18,4 +18,4 @@ async def get_nba_headlines() -> list[RSSResult]:
             source="ESPN"
         )
         articles.append(article)
-    return articles
+    return articles[0]
