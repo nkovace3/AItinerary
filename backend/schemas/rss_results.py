@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-class RSS_Results(BaseModel):
+class RSSResult(BaseModel):
     title: str
     url: str
     published_at: datetime

@@ -1,6 +1,4 @@
 from fastapi import FastAPI
-import requests
-from pydantic import BaseModel
 from services.rss import *
 from services.search import *
 

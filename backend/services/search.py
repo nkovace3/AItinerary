@@ -15,7 +15,7 @@ async def search_web(query: str) -> list[SearchResult]:
         include_answer = False,
         include_raw_content = False
     )
-    print(response)
+    # print(response)
     return [
         SearchResult(
             title=result['title'],
