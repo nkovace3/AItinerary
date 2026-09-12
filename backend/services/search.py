@@ -1,7 +1,7 @@
 from functools import lru_cache
 from config import get_settings
 from tavily import TavilyClient
-from schemas.search_results import SearchResult
+from schemas.search import SearchResult
 
 @lru_cache
 def get_client() -> TavilyClient:

@@ -1,5 +1,5 @@
 import feedparser
-from schemas.rss_results import RSSResult
+from schemas.rss import RSSResult
 from dateutil import parser
 from dateutil.tz import gettz
 

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from services.rss import *
 from services.search import search_web
 from services.rss import get_nba_headlines
-from services.researcher import research_article
+from services.researcher import research_article, create_research_plan
 
 app = FastAPI()
 

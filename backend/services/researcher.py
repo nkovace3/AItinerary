@@ -1,13 +1,43 @@
-from schemas.rss_results import RSSResult
-from schemas.research_results import ResearchSteps, ResearchDecision
+from schemas.rss import RSSResult
+from schemas.research import ResearchExecutionSteps, ResearchDecision, ResearchPlan
 from services.search import search_web
 from services.llm import execute_query
 
 MAX_SEARCHES = 5
 
-async def research_article(article: RSSResult) -> ResearchSteps:
-    step = ResearchSteps(
-        article=article
+async def create_research_plan(article: RSSResult) -> ResearchPlan:
+    prompt = f"""
+You are planning research for a news story.
+
+Your goal is to identify the key factual questions that must
+be answered before an editor can accurately explain this story.
+
+ARTICLE:
+Title: {article.title}
+Source: {article.source}
+Summary: {article.summary}
+
+Generate 3-6 specific research questions.
+
+Focus on:
+- what happened
+- important factual details
+- relevant context
+- what happens next
+- information necessary for a reader to understand why the story matters
+
+Do not write the story.
+Do not answer the questions.
+Only identify the questions that need to be researched.
+"""
+    response = await execute_query(prompt, ResearchPlan)
+    return ResearchPlan.model_validate_json(response.text)
+
+async def research_article(article: RSSResult) -> ResearchExecutionSteps:
+    plan = await create_research_plan(article)
+    step = ResearchExecutionSteps(
+        article=article,
+        questions = plan.questions
     )
 
     for _ in range(MAX_SEARCHES):
@@ -30,40 +60,44 @@ async def research_article(article: RSSResult) -> ResearchSteps:
 
     return step
 
-async def get_next_search(step: ResearchSteps) -> ResearchDecision:
+async def get_next_search(step: ResearchExecutionSteps) -> ResearchDecision:
     prompt = await build_research_prompt(step)
-    response = await execute_query(prompt)
+    response = await execute_query(prompt, ResearchDecision)
     return ResearchDecision.model_validate_json(response.text)
 
-async def build_research_prompt(step: ResearchSteps) -> str:
-    article = step.article
-
+async def build_research_prompt(step: ResearchExecutionSteps) -> str:
+    questions = '\n'.join(f"- {question}" for question in step.questions)
     previous_searches = '\n'.join(f"- {search}" for search in step.searches)
     previous_sources = '\n'.join(f"- {source.title}: {source.content}" for source in step.sources)
 
     return f"""
-You are a research agent responsible for gathering reliable
-information about a news story.
+You are a news research agent.
 
-ARTICLE
-Title: {article.title}
-Source: {article.source}
-URL: {article.url}
-Summary: {article.summary}
+Your job is to gather reliable evidence needed to answer
+the research questions for a news story.
+
+ARTICLE:
+Title: {step.article.title}
+Source: {step.article.source}
+
+RESEARCH QUESTIONS:
+{questions}
 
 PREVIOUS SEARCHES:
 {previous_searches or "None"}
 
-INFORMATION FOUND SO FAR:
+EVIDENCE FOUND:
 {previous_sources or "None"}
 
-Determine what information is still needed to understand this story.
+Choose the single most important unanswered research question.
 
-If more research is needed, provide ONE precise web search query.
+Then generate ONE precise search query designed to find
+reliable information that helps answer that question.
 
-If sufficient information has been gathered, indicate that research is complete.
+If all important questions have sufficient evidence,
+mark the research as complete.
 
-Do not invent information.
 Do not repeat previous searches.
-Prefer searches that will find primary or highly reputable sources.
-    """
+Do not invent information.
+Prefer primary and reputable sources.
+"""
