@@ -1,7 +1,7 @@
 from functools import lru_cache
 from config import get_settings
 from tavily import TavilyClient
-from schemas.search import SearchResult
+from schemas.search import Source, SearchResult
 
 @lru_cache
 def get_client() -> TavilyClient:
@@ -16,11 +16,13 @@ async def search_web(query: str) -> list[SearchResult]:
         include_answer = False,
         include_raw_content = False
     )
-    # print(response)
+
     return [
         SearchResult(
-            title=result['title'],
-            url=result['url'],
+            source=Source(
+                title=result['title'],
+                url=result['url']
+            ),
             content=result['content'],
             score=result['score']
         )
