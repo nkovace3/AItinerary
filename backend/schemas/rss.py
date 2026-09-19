@@ -7,3 +7,4 @@ class RSSResult(BaseModel):
     published_at: datetime
     summary: str
     source: str
+    category: str

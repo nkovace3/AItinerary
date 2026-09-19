@@ -15,7 +15,9 @@ async def get_nba_headlines() -> list[RSSResult]:
             url=entry.link,
             published_at=parser.parse(entry.published, tzinfos=tzinfos),
             summary=entry.summary,
-            source="ESPN"
+            source="ESPN",
+            category='NBA'
         )
         articles.append(article)
+    print(articles)
     return articles[0]

@@ -5,34 +5,6 @@ from services.llm import execute_query
 
 MAX_SEARCHES = 5
 
-async def create_research_plan(article: RSSResult) -> ResearchPlan:
-    prompt = f"""
-                You are planning research for a news story.
-
-                Your goal is to identify the key factual questions that must
-                be answered before an editor can accurately explain this story.
-
-                ARTICLE:
-                Title: {article.title}
-                Source: {article.source}
-                Summary: {article.summary}
-
-                Generate 3-6 specific research questions.
-
-                Focus on:
-                - what happened
-                - important factual details
-                - relevant context
-                - what happens next
-                - information necessary for a reader to understand why the story matters
-
-                Do not write the story.
-                Do not answer the questions.
-                Only identify the questions that need to be researched.
-                """
-    response = await execute_query(prompt, ResearchPlan)
-    return ResearchPlan.model_validate_json(response.text)
-
 async def research_article(article: RSSResult) -> ResearchExecutionSteps:
     plan = await create_research_plan(article)
     step = ResearchExecutionSteps(
@@ -63,8 +35,37 @@ async def research_article(article: RSSResult) -> ResearchExecutionSteps:
 
         print(step)
 
-    # return step
-    return await synthesize_search(step)
+    return step
+    # return await synthesize_search(step)
+
+
+async def create_research_plan(article: RSSResult) -> ResearchPlan:
+    prompt = f"""
+                You are planning research for a news story.
+
+                Your goal is to identify the key factual questions that must
+                be answered before an editor can accurately explain this story.
+
+                ARTICLE:
+                Title: {article.title}
+                Source: {article.source}
+                Summary: {article.summary}
+
+                Generate 3-6 specific research questions.
+
+                Focus on:
+                - what happened
+                - important factual details
+                - relevant context
+                - what happens next
+                - information necessary for a reader to understand why the story matters
+
+                Do not write the story.
+                Do not answer the questions.
+                Only identify the questions that need to be researched.
+                """
+    response = await execute_query(prompt, ResearchPlan)
+    return ResearchPlan.model_validate_json(response.text)
 
 async def get_next_search(step: ResearchExecutionSteps) -> ResearchDecision:
     prompt = await build_research_prompt(step)
