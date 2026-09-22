@@ -1,0 +1,16 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: interms-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: aitinerary
+    volumes:
+      - aitinerary-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  aitinerary-postgres-data:
+    external: true

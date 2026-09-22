@@ -5,8 +5,9 @@ load_dotenv()
 from fastapi import FastAPI, HTTPException
 from services.rss import get_latest_articles, feeds
 from services.pipeline import process_article, run_ingestion
+from services.dymanics import extract_dynamics
 
-from schemas.outputs import ArticleResponse
+from schemas.outputs import ArticleResponse, FinalStory
 
 from database import SessionLocal
 from repository import save_article, get_all_articles, get_article
@@ -36,15 +37,27 @@ async def get_nba():
 
 @app.get("/test")
 async def test():
-    # for feed in feeds:
-    #     articles = await get_latest_articles(feed)
+    # db = SessionLocal()
+    # story = await get_article(db=db, article_id=1)
+    # dynamics = await extract_dynamics(story)
+    # return {"result": dynamics}
+    story = FinalStory(
+    headline="Reality TV Star Leaves Longtime Alliance and Joins Rival Group",
+    summary=(
+        "After years with the same alliance, a prominent cast member "
+        "leaves the group and joins a rival alliance."
+    ),
+    key_points=[
+        "A prominent member leaves a longstanding alliance.",
+        "The person joins a competing group.",
+        "The move changes the balance of power between the two groups.",
+    ],
+    sources=[],
+)
 
-    #     print(f"\n{feed['category']}: {len(articles)} articles")
 
-    #     for article in articles[:3]:
-    #         print(article.title)
-    #         print(article.category)
-    await run_ingestion()
+    dynamics = await extract_dynamics(story)
+    print(dynamics.model_dump_json(indent=2))
 
 
 @app.get("/articles", response_model=list[ArticleResponse])
