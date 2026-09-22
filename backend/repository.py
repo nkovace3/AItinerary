@@ -38,3 +38,11 @@ async def get_article(db: Session, article_id: int) -> Article | None:
             .params(article_id=article_id)
         )
     return db.scalars(statement).first()
+
+async def article_exists(db: Session, check_url: str) -> bool:
+    statement = (
+        select(Article)
+        .from_statement(text("SELECT id FROM articles WHERE url = :check_url"))
+        .params(check_url=check_url)
+    )   
+    return db.scalar(statement) is not None

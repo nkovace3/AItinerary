@@ -3,8 +3,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, HTTPException
-from services.rss import get_nba_headlines
-from services.pipeline import process_article_pipeline
+from services.rss import get_latest_articles, feeds
+from services.pipeline import process_article, run_ingestion
 
 from schemas.outputs import ArticleResponse
 
@@ -15,8 +15,8 @@ app = FastAPI()
 
 @app.get("/")
 async def get_nba():
-    article = await get_nba_headlines()
-    story = await process_article_pipeline(article)
+    article = await get_latest_articles()
+    story = await process_article(article)
     db = SessionLocal()
     try:
         saved_article = await save_article(
@@ -33,6 +33,19 @@ async def get_nba():
         }
     finally:
         db.close()
+
+@app.get("/test")
+async def test():
+    # for feed in feeds:
+    #     articles = await get_latest_articles(feed)
+
+    #     print(f"\n{feed['category']}: {len(articles)} articles")
+
+    #     for article in articles[:3]:
+    #         print(article.title)
+    #         print(article.category)
+    await run_ingestion()
+
 
 @app.get("/articles", response_model=list[ArticleResponse])
 async def read_articles():
