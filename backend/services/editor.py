@@ -1,6 +1,6 @@
 from schemas.research import ResearchResult
 from schemas.outputs import FinalStory
-from services.llm import execute_query
+from services.google import execute_query
 
 async def edit_story(research: ResearchResult) -> FinalStory:
     prompt = f"""

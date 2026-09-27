@@ -33,4 +33,4 @@ async def get_latest_articles(feed) -> list[RSSResult]:
         )
         articles.append(article)
     # print(articles)
-    return articles[:1]
+    return articles

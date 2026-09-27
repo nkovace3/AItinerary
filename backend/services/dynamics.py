@@ -1,10 +1,4 @@
-from services.llm import execute_query
-
-from sqlalchemy.orm import Session
-
-from models import Article
-from sqlalchemy import select, text
-
+from services.google import execute_query, create_embedding
 from schemas.outputs import FinalStory, StoryDynamics
 
 situations = [
@@ -232,3 +226,128 @@ async def extract_dynamics(story: FinalStory) -> StoryDynamics:
 
     response = await execute_query(prompt, StoryDynamics)
     return StoryDynamics.model_validate_json(response.text)
+
+SITUATION_DESCRIPTIONS = {
+    "departure": "a person or group leaves an existing group or organization",
+    "arrival": "a new person or group enters an existing group or organization",
+    "conflict": "two or more parties are in conflict",
+    "competition": "two or more parties are competing",
+    "collaboration": "two or more parties are working together",
+    "acquisition": "one organization takes control of another",
+    "loss": "an important person, resource, or position is lost",
+    "recovery": "a person, group, or organization recovers from a setback",
+    "rise": "a person, group, or organization gains status or influence",
+    "decline": "a person, group, or organization loses status or influence",
+    "transformation": "the structure or identity of something changes",
+    "negotiation": "two or more parties are negotiating",
+    "crisis": "the situation involves significant instability or threat",
+    "controversy": "the situation involves significant disagreement or dispute",
+    "discovery": "new information or an important finding emerges",
+    "milestone": "a major achievement or significant event occurs",
+    "continuity": "an existing group or structure largely remains intact",
+    "transition": "a person, group, or organization moves from one state to another",
+}
+
+
+RELATIONSHIP_DESCRIPTIONS = {
+    "individual-individual": "the situation involves a relationship between two individuals",
+    "individual-group": "an individual is connected to or interacting with a group",
+    "individual-organization": "an individual is connected to or interacting with an organization",
+    "group-group": "two groups are connected to or interacting with each other",
+    "organization-organization": "two organizations are connected to or interacting with each other",
+    "leader-followers": "a leader has a relationship with a group of followers",
+    "rivals": "two or more parties are rivals",
+    "buyer-seller": "one party is buying from or selling to another party",
+}
+
+
+ACTION_DESCRIPTIONS = {
+    "join": "a person or group joins another group",
+    "leave": "a person or group leaves an existing group",
+    "replace": "one member takes the place of another",
+    "acquire": "one organization takes ownership or control of another",
+    "sell": "a person or organization sells something to another party",
+    "fire": "an organization removes a member",
+    "hire": "an organization brings in a new member",
+    "promote": "a person gains a higher position or status",
+    "demote": "a person loses position or status",
+    "compete": "two or more parties compete with one another",
+    "negotiate": "two or more parties negotiate with one another",
+    "accuse": "one party accuses another of wrongdoing",
+    "invest": "a person or organization commits resources toward something",
+    "withdraw": "a person or organization pulls away from something",
+    "announce": "a person or organization publicly announces something",
+    "restructure": "an organization changes its internal structure",
+    "challenge": "one party challenges another",
+    "support": "one party provides support to another",
+    "retain": "existing members or elements are kept",
+}
+
+
+POWER_DESCRIPTIONS = {
+    "power_shift": "the balance of power changes",
+    "power_imbalance": "one party has substantially more power than another",
+    "loss_of_control": "a party loses control over a situation or resource",
+    "gain_of_control": "a party gains control over a situation or resource",
+    "leverage": "one party has leverage over another",
+    "dependency": "one party depends on another",
+    "status_change": "the status of one or more parties changes",
+    "competition": "parties are competing for power, status, or resources",
+    "coalition": "multiple parties form or maintain an alliance",
+}
+
+
+EMOTIONAL_DESCRIPTIONS = {
+    "loyalty": "the situation involves loyalty to an existing person or group",
+    "betrayal": "the situation involves a perceived betrayal",
+    "rivalry": "the situation involves an ongoing rivalry",
+    "surprise": "the situation involves an unexpected development",
+    "uncertainty": "the outcome or future is uncertain",
+    "excitement": "the situation involves excitement about a development",
+    "anger": "the situation involves anger",
+    "disappointment": "the situation involves disappointment",
+    "hope": "the situation involves optimism about the future",
+    "fear": "the situation involves fear about a potential outcome",
+    "celebration": "the situation involves celebration of an achievement",
+    "resentment": "the situation involves lingering resentment",
+    "reconciliation": "the situation involves parties repairing a relationship",
+}
+
+async def embed_dynamics(dynamics: StoryDynamics) -> list[float]:
+    parts = []
+    
+    for situation in dynamics.situation:
+        description = SITUATION_DESCRIPTIONS.get(situation)
+
+        if description:
+            parts.append(description.capitalize() + ".")
+
+    for relationship in dynamics.relationships:
+        description = RELATIONSHIP_DESCRIPTIONS.get(relationship)
+
+        if description:
+            parts.append(description.capitalize() + ".")
+
+    for action in dynamics.actions:
+        description = ACTION_DESCRIPTIONS.get(action)
+
+        if description:
+            parts.append(description.capitalize() + ".")
+
+    for power_dynamic in dynamics.power_dynamics:
+        description = POWER_DESCRIPTIONS.get(power_dynamic)
+
+        if description:
+            parts.append(description.capitalize() + ".")
+
+    for emotional_dynamic in dynamics.emotional_dynamics:
+        description = EMOTIONAL_DESCRIPTIONS.get(emotional_dynamic)
+
+        if description:
+            parts.append(description.capitalize() + ".")
+
+    text = " ".join(parts)
+
+    response = await create_embedding(text)
+
+    return response.embeddings[0].values

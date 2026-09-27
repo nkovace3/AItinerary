@@ -3,9 +3,9 @@ from sqlalchemy import select, text
 
 from models import Article
 from schemas.rss import RSSResult
-from schemas.outputs import FinalStory
+from schemas.outputs import FinalStory, StoryDynamics
 
-async def save_article(db: Session, article: RSSResult, story: FinalStory) -> Article:
+async def save_article(db: Session, article: RSSResult, story: FinalStory, dynamics: StoryDynamics, embedding: list[float]) -> Article:
     db_article = Article(
         title=article.title,
         url=article.url,
@@ -14,7 +14,9 @@ async def save_article(db: Session, article: RSSResult, story: FinalStory) -> Ar
         headline=story.headline,
         summary=story.summary,
         key_points=story.key_points,
-        category=article.category
+        category=article.category,
+        dynamics=dynamics.model_dump(),
+        embedding=embedding
     )
 
     db.add(db_article)
@@ -46,3 +48,12 @@ async def article_exists(db: Session, check_url: str) -> bool:
         .params(check_url=check_url)
     )   
     return db.scalar(statement) is not None
+
+async def similar_articles(db: Session, embedding: list[float], limit: int = 5) -> list[Article]:
+    statement = (
+        select(Article)
+        .from_statement(text("SELECT * FROM articles WHERE embedding IS NOT NULL ORDER BY embedding <=> CAST(:embedding AS vector) LIMIT :limit"))
+        .params(embedding=embedding, limit=limit)
+        )
+
+    return list(db.scalars(statement).all())

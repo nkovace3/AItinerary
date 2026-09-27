@@ -5,7 +5,9 @@ load_dotenv()
 from fastapi import FastAPI, HTTPException
 from services.rss import get_latest_articles, feeds
 from services.pipeline import process_article, run_ingestion
-from services.dymanics import extract_dynamics
+from services.dynamics import extract_dynamics, dynamics_to_text
+from services.google import create_embedding
+from schemas.outputs import StoryDynamics
 
 from schemas.outputs import ArticleResponse, FinalStory
 
@@ -37,27 +39,40 @@ async def get_nba():
 
 @app.get("/test")
 async def test():
-    # db = SessionLocal()
-    # story = await get_article(db=db, article_id=1)
-    # dynamics = await extract_dynamics(story)
-    # return {"result": dynamics}
-    story = FinalStory(
-    headline="Reality TV Star Leaves Longtime Alliance and Joins Rival Group",
-    summary=(
-        "After years with the same alliance, a prominent cast member "
-        "leaves the group and joins a rival alliance."
-    ),
-    key_points=[
-        "A prominent member leaves a longstanding alliance.",
-        "The person joins a competing group.",
-        "The move changes the balance of power between the two groups.",
+    dynamics = StoryDynamics(
+    situation=[
+        "milestone",
+        "continuity",
+        "departure",
+        "arrival",
     ],
-    sources=[],
+    relationships=[
+        "organization-organization",
+    ],
+    actions=[
+        "leave",
+        "join",
+        "replace",
+        "retain",
+    ],
+    power_dynamics=[],
+    emotional_dynamics=[
+        "loyalty",
+        "celebration",
+        "hope",
+    ],
 )
 
 
-    dynamics = await extract_dynamics(story)
-    print(dynamics.model_dump_json(indent=2))
+    print("Canonical text:")
+    print(await dynamics_to_text(dynamics))
+
+    print("\nGenerating embedding...")
+
+    embedding = await create_embedding(dynamics)
+
+    print(f"\nEmbedding dimensions: {len(embedding)}")
+    print(f"First 10 values: {embedding[:10]}")
 
 
 @app.get("/articles", response_model=list[ArticleResponse])
