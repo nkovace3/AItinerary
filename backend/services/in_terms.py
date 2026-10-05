@@ -1,6 +1,8 @@
 from services.google import execute_query
 from schemas.outputs import FinalStory, StoryDynamics, InTermsResult
 from models import Article
+from sqlalchemy.orm import Session
+from repository import get_in_terms, get_article, find_similar_articles, save_in_terms
 
 async def generate_in_terms(story: FinalStory, dynamics: StoryDynamics, target_term: str, similar_article, similar_dynamics: StoryDynamics | None) -> InTermsResult:
     prompt = f"""
@@ -83,3 +85,54 @@ Return only the structured InTermsResult.
     
     response = await execute_query(prompt, InTermsResult)
     return InTermsResult.model_validate_json(response.text)
+
+async def get_or_generate_in_terms(db: Session, article_id: int, target_category: str):
+    cached = await get_in_terms(db=db, article_id=article_id, target_category=target_category)
+
+    if cached:
+        return cached
+
+    article = await get_article(db, article_id)
+
+    if article is None:
+        return None
+
+    similar_articles = await find_similar_articles(
+        db=db,
+        embedding=article.embedding,
+        category=target_category,
+        limit=1
+    )
+
+    similar_article = similar_articles[0] if similar_articles else None
+
+    similar_dynamics = None
+    
+    if similar_article:
+        similar_dynamics = StoryDynamics(**similar_article.dynamics)
+
+    story = FinalStory(
+                headline=article.headline,
+                summary=article.summary,
+                key_points=article.key_points,
+                sources=[],
+            )
+
+    dynamics = StoryDynamics(**article.dynamics)
+
+    result = await generate_in_terms(
+                story=story,
+                dynamics=dynamics,
+                target_term=target_category,
+                similar_article=similar_article,
+                similar_dynamics=similar_dynamics,
+            )
+
+    saved = await save_in_terms(
+        db=db,
+        article_id=article_id,
+        target_category=target_category,
+        result=result
+    )
+
+    return saved

@@ -4,9 +4,9 @@ from database import SessionLocal
 from services.rss import feeds, get_latest_articles
 from services.pipeline import process_article
 from services.dynamics import extract_dynamics, embed_dynamics
-from repository import save_article, article_exists, get_article, find_similar_articles
+from repository import save_article, article_exists, get_article, find_similar_articles, save_in_terms
 from schemas.outputs import FinalStory, StoryDynamics
-from services.in_terms import generate_in_terms
+from services.in_terms import generate_in_terms, get_or_generate_in_terms
 
 async def end_to_end_with_embedding():
     db = SessionLocal()
@@ -153,9 +153,27 @@ async def test_in_terms_generation():
         print("\nIn Terms:")
         print(result)
 
+        await save_in_terms(db=db, article_id=23, target_category='Reality TV', result=result )
+
+    finally:
+        db.close()
+
+async def tiny_test():
+    db = SessionLocal()
+
+    try:
+        result = await get_or_generate_in_terms(
+            db=db,
+            article_id=23,
+            target_category="Finance",
+        )
+
+        print(result.term)
+        print(result.explanation)
+
     finally:
         db.close()
 
 if __name__ == "__main__":
     # asyncio.run(end_to_end_with_embedding())
-    asyncio.run(test_in_terms_generation())
+    asyncio.run(tiny_test())

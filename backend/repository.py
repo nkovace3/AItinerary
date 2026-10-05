@@ -2,9 +2,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, text
 from datetime import datetime, timedelta
 
-from models import Article
+from models import Article, InTerms
 from schemas.rss import RSSResult
-from schemas.outputs import FinalStory, StoryDynamics
+from schemas.outputs import FinalStory, StoryDynamics, InTermsResult
 
 async def save_article(db: Session, article: RSSResult, story: FinalStory, dynamics: StoryDynamics, embedding: list[float]) -> Article:
     db_article = Article(
@@ -59,3 +59,26 @@ async def find_similar_articles(db: Session, category: str, embedding: list[floa
         )
 
     return list(db.scalars(statement).all())
+
+async def get_in_terms(db: Session, article_id: int, target_category: str) -> InTerms | None:
+    statement = (
+        select(InTerms)
+        .from_statement(text("SELECT * FROM in_terms WHERE article_id = :article_id AND target_category = :target_category"))
+        .params(article_id=article_id, target_category=target_category)
+    )
+
+    return db.scalars(statement).first()
+
+async def save_in_terms(db: Session, article_id: int, target_category: str, result: InTermsResult) -> InTerms:
+    db_in_terms = InTerms(
+        article_id=article_id,
+        target_category=target_category,
+        term=result.term,
+        explanation=result.explanation
+    )
+
+    db.add(db_in_terms)
+    db.commit()
+    db.refresh(db_in_terms)
+
+    return db_in_terms
