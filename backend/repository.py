@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select, text
+from datetime import datetime, timedelta
 
 from models import Article
 from schemas.rss import RSSResult
@@ -49,11 +50,12 @@ async def article_exists(db: Session, check_url: str) -> bool:
     )   
     return db.scalar(statement) is not None
 
-async def similar_articles(db: Session, embedding: list[float], limit: int = 5) -> list[Article]:
+async def find_similar_articles(db: Session, category: str, embedding: list[float], limit: int = 5) -> list[Article]:
+    time_cutoff = datetime.utcnow() - timedelta(days=14)
     statement = (
         select(Article)
-        .from_statement(text("SELECT * FROM articles WHERE embedding IS NOT NULL ORDER BY embedding <=> CAST(:embedding AS vector) LIMIT :limit"))
-        .params(embedding=embedding, limit=limit)
+        .from_statement(text("SELECT * FROM articles WHERE embedding IS NOT NULL AND category = :category AND published_at >= :time_cutoff ORDER BY embedding <=> CAST(:embedding AS vector) LIMIT :limit"))
+        .params(embedding=embedding, category=category, time_cutoff=time_cutoff, limit=limit)
         )
 
     return list(db.scalars(statement).all())

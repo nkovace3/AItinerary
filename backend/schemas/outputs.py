@@ -28,3 +28,7 @@ class StoryDynamics(BaseModel):
     actions: list[str] = []
     power_dynamics: list[str] = []
     emotional_dynamics: list[str] = []
+
+class InTermsResult(BaseModel):
+    term: str
+    explanation: str
