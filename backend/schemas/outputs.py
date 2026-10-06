@@ -21,3 +21,14 @@ class ArticleResponse(BaseModel):
     category: str
 
     model_config = ConfigDict(from_attributes=True)
+
+class StoryDynamics(BaseModel):
+    situation: list[str] = []
+    relationships: list[str] = []
+    actions: list[str] = []
+    power_dynamics: list[str] = []
+    emotional_dynamics: list[str] = []
+
+class InTermsResult(BaseModel):
+    term: str
+    explanation: str

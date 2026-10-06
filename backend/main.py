@@ -5,8 +5,11 @@ load_dotenv()
 from fastapi import FastAPI, HTTPException
 from services.rss import get_latest_articles, feeds
 from services.pipeline import process_article, run_ingestion
+from services.dynamics import extract_dynamics, dynamics_to_text
+from services.google import create_embedding
+from schemas.outputs import StoryDynamics
 
-from schemas.outputs import ArticleResponse
+from schemas.outputs import ArticleResponse, FinalStory
 
 from database import SessionLocal
 from repository import save_article, get_all_articles, get_article
@@ -36,15 +39,40 @@ async def get_nba():
 
 @app.get("/test")
 async def test():
-    # for feed in feeds:
-    #     articles = await get_latest_articles(feed)
+    dynamics = StoryDynamics(
+    situation=[
+        "milestone",
+        "continuity",
+        "departure",
+        "arrival",
+    ],
+    relationships=[
+        "organization-organization",
+    ],
+    actions=[
+        "leave",
+        "join",
+        "replace",
+        "retain",
+    ],
+    power_dynamics=[],
+    emotional_dynamics=[
+        "loyalty",
+        "celebration",
+        "hope",
+    ],
+)
 
-    #     print(f"\n{feed['category']}: {len(articles)} articles")
 
-    #     for article in articles[:3]:
-    #         print(article.title)
-    #         print(article.category)
-    await run_ingestion()
+    print("Canonical text:")
+    print(await dynamics_to_text(dynamics))
+
+    print("\nGenerating embedding...")
+
+    embedding = await create_embedding(dynamics)
+
+    print(f"\nEmbedding dimensions: {len(embedding)}")
+    print(f"First 10 values: {embedding[:10]}")
 
 
 @app.get("/articles", response_model=list[ArticleResponse])

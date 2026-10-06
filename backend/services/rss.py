@@ -17,6 +17,27 @@ feeds = [
         "source": "ESPN",
         "category": "NFL",
     },
+    {
+        "url": "https://www.espn.com/espn/rss/mlb/news",
+        "source": "ESPN",
+        "category": "MLB",
+    },
+    {
+        'url': 'https://realityblurb.com/feed/',
+        'source': 'RealityBlurb',
+        'category': 'Reality TV'
+    },
+    {
+        'url': 'https://feeds.npr.org/1014/rss.xml',
+        'source': 'NPR',
+        'category': 'US Politics'
+    },
+    {
+        'url': 'https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml',
+        'source': 'WSJ',
+        'category': 'Business'
+    }
+
 ]
 
 async def get_latest_articles(feed) -> list[RSSResult]:
@@ -33,4 +54,4 @@ async def get_latest_articles(feed) -> list[RSSResult]:
         )
         articles.append(article)
     # print(articles)
-    return articles[:1]
+    return articles

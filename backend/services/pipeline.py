@@ -1,6 +1,7 @@
 from services.researcher import research_article, synthesize_search
 from services.editor import edit_story
 from services.rss import get_latest_articles, feeds
+from services.dynamics import extract_dynamics, embed_dynamics
 from schemas.rss import RSSResult
 from database import SessionLocal
 from repository import save_article, article_exists
@@ -18,7 +19,9 @@ async def run_ingestion():
                     continue
                 try:
                     story = await process_article(article)
-                    await save_article(db=db, article=article, story=story)
+                    dynamics = await extract_dynamics(story)
+                    embedding = await embed_dynamics(dynamics)
+                    await save_article(db=db, article=article, story=story, dynamics=dynamics, embedding=embedding)
                     print(f"Saved: {article.title}")
                 except Exception as e:
                     print(f"Failed: {article.title}")
@@ -29,8 +32,8 @@ async def run_ingestion():
 async def process_article(article: RSSResult):
     intermediary_research = await research_article(article)
 
-    research_resutls = await synthesize_search(intermediary_research)
+    research_results = await synthesize_search(intermediary_research)
 
-    final_story = await edit_story(research_resutls)
+    final_story = await edit_story(research_results)
 
     return final_story

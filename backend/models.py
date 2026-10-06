@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from sqlalchemy import String, DateTime, JSON
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, DateTime, JSON, Text, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from pgvector.sqlalchemy import Vector
 
 from database import Base
 
@@ -14,13 +15,35 @@ class Article(Base):
     url: Mapped[str] = mapped_column(String, unique=True)
     published_at: Mapped[datetime] = mapped_column(DateTime)
     source: Mapped[str] = mapped_column(String)
-    category: Mapped[str] = mapped_column(String)
+    category: Mapped[str] = mapped_column(String, nullable=False)
 
     headline: Mapped[str] = mapped_column(String)
     summary: Mapped[str] = mapped_column(String)
     key_points: Mapped[list[str]] = mapped_column(JSON)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    dynamics: Mapped[dict] = mapped_column(JSON, nullable=True)
+
+    embedding: Mapped[list[float]] = mapped_column(Vector(768), nullable=True)
+
+    in_terms: Mapped[list["InTerms"]] = relationship(back_populates="article", cascade="all, delete-orphan")
+
+class InTerms(Base):
+    __tablename__ = 'in_terms'
+
+    __table_args__ = (UniqueConstraint('article_id', 'target_category', name='uq_in_terms_article_category'),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    article_id: Mapped[int] = mapped_column(ForeignKey("articles.id", ondelete="CASCADE"),nullable=False)
+
+    target_category: Mapped[str] = mapped_column(String, nullable=False)
+
+    term: Mapped[str] = mapped_column(String, nullable=False)
+
+    explanation: Mapped[str] = mapped_column(String, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    article: Mapped["Article"] = relationship(back_populates="in_terms")

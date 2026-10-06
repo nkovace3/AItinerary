@@ -1,7 +1,7 @@
 from schemas.rss import RSSResult
 from schemas.research import ResearchExecutionSteps, ResearchDecision, ResearchPlan, ResearchQuestionAssessment, ResearchResult
 from services.search import search_web
-from services.llm import execute_query
+from services.google import execute_query
 
 MAX_SEARCHES = 5
 
@@ -33,7 +33,7 @@ async def research_article(article: RSSResult) -> ResearchExecutionSteps:
         if assessment.answered:
             step.answered_questions.append(decision.question)
 
-        print(step)
+        # print(step)
 
     return step
     # return await synthesize_search(step)
