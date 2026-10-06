@@ -97,6 +97,9 @@ async def get_or_generate_in_terms(db: Session, article_id: int, target_category
     if article is None:
         return None
 
+    if target_category == article.category:
+        return None
+
     similar_articles = await find_similar_articles(
         db=db,
         embedding=article.embedding,
