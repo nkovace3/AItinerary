@@ -32,7 +32,7 @@ or invent a new scenario.
 
                 RETRIEVED TARGET-DOMAIN STORY:
                 {f"""Headline: {similar_article.headline}\n
-                    Summary: {similar_article.headline}\n
+                    Summary: {similar_article.summary}\n
                     Key Points: {similar_article.key_points}\n""" 
                     if similar_article else 
                     "No example is available. Use your general knowledge of the target domain."}
@@ -95,6 +95,9 @@ async def get_or_generate_in_terms(db: Session, article_id: int, target_category
     article = await get_article(db, article_id)
 
     if article is None:
+        return None
+
+    if target_category == article.category:
         return None
 
     similar_articles = await find_similar_articles(

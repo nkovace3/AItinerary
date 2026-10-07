@@ -7,10 +7,10 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: aitinerary
+      POSTGRES_DB: interms
     volumes:
-      - aitinerary-postgres-data:/var/lib/postgresql/data
+      - interms-postgres-data:/var/lib/postgresql/data
 
 volumes:
-  aitinerary-postgres-data:
-    external: true
+  interms-postgres-data:
+    name: interms-postgres-data

@@ -32,3 +32,13 @@ class StoryDynamics(BaseModel):
 class InTermsResult(BaseModel):
     term: str
     explanation: str
+
+class InTermsResponse(BaseModel):
+    id: int
+    article_id: int
+    target_category: str
+    term: str
+    explanation: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
