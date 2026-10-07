@@ -32,7 +32,7 @@ or invent a new scenario.
 
                 RETRIEVED TARGET-DOMAIN STORY:
                 {f"""Headline: {similar_article.headline}\n
-                    Summary: {similar_article.headline}\n
+                    Summary: {similar_article.summary}\n
                     Key Points: {similar_article.key_points}\n""" 
                     if similar_article else 
                     "No example is available. Use your general knowledge of the target domain."}
