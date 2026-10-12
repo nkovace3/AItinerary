@@ -40,10 +40,12 @@ class InTerms(Base):
 
     target_category: Mapped[str] = mapped_column(String, nullable=False)
 
-    term: Mapped[str] = mapped_column(String, nullable=False)
+    headline: Mapped[str] = mapped_column(String, nullable=False)
 
-    explanation: Mapped[str] = mapped_column(String, nullable=False)
+    summary: Mapped[str] = mapped_column(String, nullable=False)
 
+    key_points: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     article: Mapped["Article"] = relationship(back_populates="in_terms")

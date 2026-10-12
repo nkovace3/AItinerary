@@ -73,8 +73,9 @@ async def save_in_terms(db: Session, article_id: int, target_category: str, resu
     db_in_terms = InTerms(
         article_id=article_id,
         target_category=target_category,
-        term=result.term,
-        explanation=result.explanation
+        headline=result.headline,
+        summary=result.summary,
+        key_points=result.key_points,
     )
 
     db.add(db_in_terms)

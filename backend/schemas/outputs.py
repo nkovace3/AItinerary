@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from schemas.search import Source
 from datetime import datetime
 
@@ -30,15 +30,17 @@ class StoryDynamics(BaseModel):
     emotional_dynamics: list[str] = []
 
 class InTermsResult(BaseModel):
-    term: str
-    explanation: str
+    headline: str
+    summary: str
+    key_points: list[str] = Field(min_length=3, max_length=3)
 
 class InTermsResponse(BaseModel):
     id: int
     article_id: int
     target_category: str
-    term: str
-    explanation: str
+    headline: str
+    summary: str
+    key_points: list[str] = Field(min_length=3, max_length=3)
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
