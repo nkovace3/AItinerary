@@ -1,46 +1,53 @@
+import { ChevronDown } from "lucide-react";
+import { OverlayNav } from "@/components/overlay-nav";
 import { StoryCard } from "@/components/story-card";
+import { getArticles } from "@/lib/api";
 
 // Stand-in for the future sign-up color picker — "a color that describes you."
 const PLACEHOLDER_PERSONAL_ACCENT = "oklch(0.64 0.26 322)";
 
-export default function CardPreview() {
-  return (
-    <div className="min-h-dvh bg-background px-6 py-16">
-      <div className="mx-auto mb-12 flex max-w-5xl flex-col gap-2 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          In Terms — card prototype
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Neutral by default. Click &quot;Translate&quot; to see it rendered in a
-          placeholder personal color.
-        </p>
-      </div>
+// No target-category picker exists yet, so rotate through a small set of
+// targets for visual variety, skipping whichever one matches the article's
+// own category (the backend rejects translating a category into itself).
+const TRANSLATION_TARGETS = ["Reality TV", "Finance", "Politics", "NBA", "NFL", "MLB"];
 
-      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <StoryCard
-            key={i}
-            personalAccent={PLACEHOLDER_PERSONAL_ACCENT}
-            category="NBA"
-            source="ESPN"
-            headline="Mavericks Blindside League, Trade All-Star Guard Hours Before Deadline"
-            dek="Dallas stuns the NBA by trading its franchise point guard in a deal nobody saw coming."
-            keyPoints={[
-              "Guard traded to a Western Conference rival in a 3-team deal",
-              'Front office cited "long-term direction," fueling backlash from fans',
-              "Rival team instantly becomes a title contender",
-            ]}
-            translatedTarget="Reality TV"
-            translatedHeadline="The Fan-Favorite Just Got Blindsided — And Everyone's Taking Sides"
-            translatedDek="The fan favorite just got traded off his own show — and his rival's cast just got a lot more dangerous."
-            translatedKeyPoints={[
-              'The star got "voted off" his own team in a surprise 3-way trade',
-              'Management says it\'s "strategy" — fans are calling it a betrayal',
-              "The rival alliance he got traded to just became the one to beat",
-            ]}
-          />
-        ))}
-      </div>
+function pickTranslationTarget(category: string, index: number): string {
+  for (let offset = 0; offset < TRANSLATION_TARGETS.length; offset++) {
+    const candidate =
+      TRANSLATION_TARGETS[(index + offset) % TRANSLATION_TARGETS.length];
+    if (candidate.toLowerCase() !== category.toLowerCase()) return candidate;
+  }
+  return TRANSLATION_TARGETS[0];
+}
+
+export default async function CardPreview() {
+  const articles = await getArticles();
+
+  return (
+    <div className="fixed inset-0 snap-y snap-mandatory overflow-y-scroll bg-background [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <OverlayNav />
+
+      {articles.map((article, i) => (
+        <section
+          key={article.id}
+          className="relative flex h-dvh w-full snap-center snap-always items-center justify-center px-6"
+        >
+          <div className="w-full max-w-md">
+            <StoryCard
+              article={article}
+              translationTarget={pickTranslationTarget(article.category, i)}
+              personalAccent={PLACEHOLDER_PERSONAL_ACCENT}
+            />
+          </div>
+
+          {i === 0 && (
+            <div className="pointer-events-none absolute bottom-10 left-1/2 flex -translate-x-1/2 animate-bounce flex-col items-center gap-1 text-muted-foreground">
+              <span className="text-xs">scroll for the next story</span>
+              <ChevronDown className="size-4" />
+            </div>
+          )}
+        </section>
+      ))}
     </div>
   );
 }
